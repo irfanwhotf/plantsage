@@ -9,7 +9,7 @@ interface RequestBody {
 }
 
 interface IdentifyResponse {
-  result: PlantInfo;
+  result?: PlantInfo;
   error?: string;
 }
 
@@ -18,6 +18,14 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Create error response helper
+const createErrorResponse = (message: string, status: number = 500) => {
+  return NextResponse.json(
+    { error: message },
+    { status, headers: corsHeaders }
+  );
 };
 
 // Handle OPTIONS request for CORS
@@ -36,22 +44,28 @@ export async function POST(request: Request) {
       headers: Object.fromEntries(request.headers.entries()),
     });
 
-    const body = await request.json() as RequestBody;
+    const contentType = request.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      return createErrorResponse('Invalid content type. Expected application/json', 400);
+    }
+
+    let body: RequestBody;
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      return createErrorResponse('Invalid JSON in request body', 400);
+    }
+
     const { image } = body;
     
     if (!image || typeof image !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid image data' },
-        { status: 400, headers: corsHeaders }
-      );
+      return createErrorResponse('Invalid image data', 400);
     }
 
     if (!process.env.GOOGLE_API_KEY) {
       console.error('Missing API key');
-      return NextResponse.json(
-        { error: 'Server configuration error: Missing API key' },
-        { status: 500, headers: corsHeaders }
-      );
+      return createErrorResponse('Server configuration error: Missing API key', 500);
     }
 
     console.log('Processing image with Gemini...');
@@ -59,7 +73,7 @@ export async function POST(request: Request) {
     console.log('Gemini response received:', result);
     
     if (!result) {
-      throw new Error('No result from plant identification');
+      return createErrorResponse('No result from plant identification');
     }
     
     return NextResponse.json(
@@ -75,12 +89,8 @@ export async function POST(request: Request) {
     
   } catch (error) {
     console.error('Error in /api/identify:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to identify plant' },
-      { 
-        status: 500,
-        headers: corsHeaders
-      }
+    return createErrorResponse(
+      error instanceof Error ? error.message : 'Failed to identify plant'
     );
   }
 }

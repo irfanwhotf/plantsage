@@ -6,9 +6,7 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-  ? '/api/identify'
-  : 'https://plantsage.pages.dev/api/identify';
+const API_ENDPOINT = '/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;

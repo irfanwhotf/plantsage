@@ -32,7 +32,7 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
     }
 
     const genAI = initializeAPI();
-    const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Extract the base64 data from the Data URL if it exists
     const base64Data = imageBase64.includes('base64,') 
@@ -46,15 +46,15 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       throw new Error('Invalid base64 image data');
     }
 
-    const prompt = `Analyze this plant image and provide information in this exact JSON format. Be concise and accurate:
+    const prompt = `Identify this plant and provide information in JSON format:
 {
-  "commonName": "Plant's common name",
+  "commonName": "Common name",
   "scientificName": "Scientific name",
-  "family": "Plant family",
+  "family": "Family name",
   "characteristics": {
-    "appearance": "Brief physical description",
+    "appearance": "Brief appearance",
     "growthHabit": "Growth pattern",
-    "toxicity": "Toxicity info if any"
+    "toxicity": "Toxicity info"
   },
   "care": {
     "light": "Light needs",
@@ -66,13 +66,13 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
 
     console.log('Sending request to Gemini API...');
     const result = await model.generateContent([
+      prompt,
       {
         inlineData: {
           mimeType: "image/jpeg",
           data: base64Data
         }
-      },
-      prompt
+      }
     ]);
 
     console.log('Received response from Gemini API');
