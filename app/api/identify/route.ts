@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { identifyPlant, PlantInfo } from '@/app/utils/gemini';
 
-// Remove edge runtime for local development
-export const runtime = 'node';
+export const runtime = 'edge';
 
 interface RequestBody {
   image: string;
