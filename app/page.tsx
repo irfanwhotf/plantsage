@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || 'https://plantsage.pages.dev/api/identify';
+const API_ENDPOINT = process.env.NODE_ENV === 'development' 
+  ? '/api/identify'
+  : 'https://plantsage.pages.dev/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;
@@ -63,24 +65,32 @@ export default function Home() {
           'Accept': 'application/json',
         },
         body: JSON.stringify({ image: base64 }),
+        mode: 'cors',
       });
 
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json();
-          console.error('API Error:', errorData);
-          throw new Error(errorData.error || 'Failed to identify plant');
-        } else {
-          const text = await response.text();
-          console.error('API Response:', {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries()),
-            body: text
-          });
-          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        let errorMessage;
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            errorMessage = errorData.error;
+          } else {
+            const text = await response.text();
+            console.error('API Response:', {
+              status: response.status,
+              statusText: response.statusText,
+              headers: Object.fromEntries(response.headers.entries()),
+              body: text
+            });
+            errorMessage = text;
+          }
+        } catch (e) {
+          console.error('Error parsing response:', e);
+          errorMessage = 'Failed to parse server response';
         }
+        throw new Error(errorMessage || `Server error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -90,6 +100,7 @@ export default function Home() {
       }
       setResults(data);
     } catch (err) {
+      console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
