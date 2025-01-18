@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || '/api/identify';
+const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || 'https://plantsage.pages.dev/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;
