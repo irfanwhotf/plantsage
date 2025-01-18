@@ -5,6 +5,9 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
+// API endpoint based on environment
+const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || '/api/identify';
+
 interface IdentifyResponse {
   result: PlantInfo;
   error?: string;
@@ -52,20 +55,39 @@ export default function Home() {
       setSelectedImage(base64);
 
       // Send base64 image to API
-      const response = await fetch('/api/identify', {
+      console.log('Sending request to:', API_ENDPOINT);
+      const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ image: base64 }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to identify plant');
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          console.error('API Error:', errorData);
+          throw new Error(errorData.error || 'Failed to identify plant');
+        } else {
+          const text = await response.text();
+          console.error('API Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: text
+          });
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
       }
 
       const data = await response.json();
+      console.log('API Response:', data);
+      if (!data || !data.result) {
+        throw new Error('Invalid response format from server');
+      }
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

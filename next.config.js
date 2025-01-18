@@ -2,9 +2,9 @@
 const nextConfig = {
   images: {
     unoptimized: true,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+  env: {
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
   },
 }
 
