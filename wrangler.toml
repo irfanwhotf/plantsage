@@ -12,4 +12,4 @@ command = "npm install && npm run build"
 format = "service-worker"
 
 [env.production]
-pages_build_output_dir = ".next/standalone"
+pages_build_output_dir = ".next"
