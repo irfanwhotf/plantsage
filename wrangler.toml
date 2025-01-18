@@ -3,18 +3,13 @@ compatibility_date = "2024-01-18"
 compatibility_flags = ["nodejs_compat"]
 
 [site]
-bucket = "./out"
+bucket = "./.next/standalone"
 
 [build]
 command = "npm install && npm run build"
-output_directory = "/out"
 
 [build.upload]
 format = "service-worker"
 
-[[build.environment]]
-name = "production"
-runtime = "edge"
-
 [env.production]
-workers_dev = true
+pages_build_output_dir = ".next/standalone"

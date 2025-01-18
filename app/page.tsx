@@ -60,42 +60,23 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify({ image: base64 }),
-        cache: 'no-store',
       });
 
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        let errorMessage;
+        let errorMessage = 'Failed to identify plant';
         try {
-          if (contentType && contentType.includes('application/json')) {
-            const errorData = await response.json();
-            console.error('API Error:', errorData);
-            errorMessage = errorData.error;
-          } else {
-            const text = await response.text();
-            console.error('API Response:', {
-              status: response.status,
-              statusText: response.statusText,
-              headers: Object.fromEntries(response.headers.entries()),
-              body: text
-            });
-            errorMessage = text;
-          }
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
         } catch (e) {
-          console.error('Error parsing response:', e);
-          errorMessage = 'Failed to parse server response';
+          console.error('Error parsing error response:', e);
         }
-        throw new Error(errorMessage || `Server error: ${response.status} ${response.statusText}`);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       console.log('API Response:', data);
-      if (!data || !data.result) {
-        throw new Error('Invalid response format from server');
-      }
       setResults(data);
     } catch (err) {
       console.error('Upload error:', err);

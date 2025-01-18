@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { identifyPlant, PlantInfo } from '@/app/utils/gemini';
 
 export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
 
 interface RequestBody {
   image: string;
@@ -61,10 +60,7 @@ export async function POST(request: Request) {
       { result },
       { 
         status: 200,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        }
+        headers: corsHeaders
       }
     );
     
@@ -74,10 +70,7 @@ export async function POST(request: Request) {
       { error: error instanceof Error ? error.message : 'Failed to identify plant' },
       { 
         status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        }
+        headers: corsHeaders
       }
     );
   }
