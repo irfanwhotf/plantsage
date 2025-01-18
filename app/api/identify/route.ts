@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { identifyPlant, PlantInfo } from '@/app/utils/gemini';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 interface RequestBody {
   image: string;
@@ -21,11 +22,20 @@ const corsHeaders = {
 
 // Handle OPTIONS request for CORS
 export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+  return new NextResponse(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
 }
 
 export async function POST(request: Request) {
   try {
+    // Log request details for debugging
+    console.log('Received request:', {
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries()),
+    });
+
     const body = await request.json() as RequestBody;
     const { image } = body;
     
@@ -43,14 +53,32 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('Processing image with Gemini...');
     const result = await identifyPlant(image);
-    return NextResponse.json({ result }, { headers: corsHeaders });
+    console.log('Gemini response received:', result);
+    
+    return NextResponse.json(
+      { result },
+      { 
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
     
   } catch (error) {
     console.error('Error in /api/identify:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to identify plant' },
-      { status: 500, headers: corsHeaders }
+      { 
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        }
+      }
     );
   }
 }

@@ -6,9 +6,7 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = process.env.NODE_ENV === 'development' 
-  ? '/api/identify'
-  : 'https://plantsage.pages.dev/api/identify';
+const API_ENDPOINT = '/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;
@@ -65,7 +63,7 @@ export default function Home() {
           'Accept': 'application/json',
         },
         body: JSON.stringify({ image: base64 }),
-        mode: 'cors',
+        cache: 'no-store',
       });
 
       if (!response.ok) {
