@@ -1,10 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-if (!process.env.GOOGLE_API_KEY) {
-  throw new Error("Missing GOOGLE_API_KEY environment variable");
-}
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+// Initialize the API with error handling
+const initializeAPI = () => {
+  if (!process.env.GOOGLE_API_KEY) {
+    throw new Error("Missing GOOGLE_API_KEY environment variable");
+  }
+  return new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+};
 
 export interface PlantInfo {
   commonName: string;
@@ -29,6 +31,7 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       throw new Error("No image data provided");
     }
 
+    const genAI = initializeAPI();
     const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
     // Extract the base64 data from the Data URL if it exists
@@ -43,25 +46,25 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       throw new Error('Invalid base64 image data');
     }
 
-    const prompt = `You are a plant identification expert. Analyze this image and provide detailed information about the plant in the following JSON structure. If you cannot identify the plant with certainty, please indicate that in the response. Be concise but accurate:
+    const prompt = `Analyze this plant image and provide information in this exact JSON format. Be concise and accurate:
+{
+  "commonName": "Plant's common name",
+  "scientificName": "Scientific name",
+  "family": "Plant family",
+  "characteristics": {
+    "appearance": "Brief physical description",
+    "growthHabit": "Growth pattern",
+    "toxicity": "Toxicity info if any"
+  },
+  "care": {
+    "light": "Light needs",
+    "water": "Water needs",
+    "soil": "Soil type"
+  },
+  "facts": ["Fact 1", "Fact 2"]
+}`;
 
-    {
-      "commonName": "Main common name",
-      "scientificName": "Scientific name in italics",
-      "family": "Plant family name",
-      "characteristics": {
-        "appearance": "Brief description of physical appearance",
-        "growthHabit": "Growth pattern and size",
-        "toxicity": "Any toxicity info"
-      },
-      "care": {
-        "light": "Light needs",
-        "water": "Water needs",
-        "soil": "Soil type"
-      },
-      "facts": ["Key fact 1", "Key fact 2"]
-    }`;
-
+    console.log('Sending request to Gemini API...');
     const result = await model.generateContent([
       {
         inlineData: {
@@ -71,6 +74,8 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       },
       prompt
     ]);
+
+    console.log('Received response from Gemini API');
 
     if (!result || !result.response) {
       throw new Error('No response received from Gemini API');
@@ -82,6 +87,8 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
     if (!text) {
       throw new Error('Empty response from Gemini API');
     }
+
+    console.log('Processing Gemini response:', text);
 
     try {
       // Extract JSON from the response
@@ -95,6 +102,26 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       // Validate the response structure
       if (!plantInfo.commonName || !plantInfo.scientificName) {
         throw new Error('Could not identify the plant in the image');
+      }
+
+      // Ensure all required fields are present
+      const validatePlantInfo = (info: PlantInfo): boolean => {
+        return !!(
+          info.commonName &&
+          info.scientificName &&
+          info.family &&
+          info.characteristics?.appearance &&
+          info.characteristics?.growthHabit &&
+          info.characteristics?.toxicity &&
+          info.care?.light &&
+          info.care?.water &&
+          info.care?.soil &&
+          Array.isArray(info.facts)
+        );
+      };
+
+      if (!validatePlantInfo(plantInfo)) {
+        throw new Error('Incomplete plant information received');
       }
 
       return plantInfo;

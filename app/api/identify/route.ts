@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { identifyPlant, PlantInfo } from '@/app/utils/gemini';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 interface RequestBody {
   image: string;
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     }
 
     if (!process.env.GOOGLE_API_KEY) {
+      console.error('Missing API key');
       return NextResponse.json(
         { error: 'Server configuration error: Missing API key' },
         { status: 500, headers: corsHeaders }
@@ -56,11 +58,18 @@ export async function POST(request: Request) {
     const result = await identifyPlant(image);
     console.log('Gemini response received:', result);
     
+    if (!result) {
+      throw new Error('No result from plant identification');
+    }
+    
     return NextResponse.json(
       { result },
       { 
         status: 200,
-        headers: corsHeaders
+        headers: {
+          ...corsHeaders,
+          'Cache-Control': 'no-store, must-revalidate',
+        }
       }
     );
     

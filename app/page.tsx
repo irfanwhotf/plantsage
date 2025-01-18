@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = process.env.NEXT_PUBLIC_VERCEL_URL 
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/identify`
-  : '/api/identify';
+const API_ENDPOINT = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+  ? '/api/identify'
+  : 'https://plantsage.pages.dev/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;
@@ -66,23 +66,22 @@ export default function Home() {
         body: JSON.stringify({ image: base64 }),
       });
 
-      if (!response.ok) {
-        let errorMessage = 'Failed to identify plant';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          console.error('Error parsing error response:', e);
-        }
-        throw new Error(errorMessage);
-      }
-
       const data = await response.json();
       console.log('API Response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to identify plant');
+      }
+
+      if (!data.result) {
+        throw new Error('No plant identification data received');
+      }
+
       setResults(data);
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setResults(null);
     } finally {
       setIsLoading(false);
     }
