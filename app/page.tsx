@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = '/api/identify';
+const API_ENDPOINT = process.env.NEXT_PUBLIC_VERCEL_URL 
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/identify`
+  : '/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;

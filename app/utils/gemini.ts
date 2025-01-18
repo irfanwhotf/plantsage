@@ -29,7 +29,7 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       throw new Error("No image data provided");
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
     // Extract the base64 data from the Data URL if it exists
     const base64Data = imageBase64.includes('base64,') 
@@ -43,33 +43,33 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
       throw new Error('Invalid base64 image data');
     }
 
-    const prompt = `You are a plant identification expert. Analyze this image and provide detailed information about the plant in the following JSON structure. If you cannot identify the plant with certainty, please indicate that in the response:
+    const prompt = `You are a plant identification expert. Analyze this image and provide detailed information about the plant in the following JSON structure. If you cannot identify the plant with certainty, please indicate that in the response. Be concise but accurate:
 
     {
       "commonName": "Main common name",
       "scientificName": "Scientific name in italics",
       "family": "Plant family name",
       "characteristics": {
-        "appearance": "Detailed description of physical appearance",
-        "growthHabit": "Growth pattern and mature size",
-        "toxicity": "Any toxicity information if available"
+        "appearance": "Brief description of physical appearance",
+        "growthHabit": "Growth pattern and size",
+        "toxicity": "Any toxicity info"
       },
       "care": {
-        "light": "Light requirements",
-        "water": "Watering needs",
-        "soil": "Soil preferences"
+        "light": "Light needs",
+        "water": "Water needs",
+        "soil": "Soil type"
       },
-      "facts": ["Interesting fact 1", "Interesting fact 2"]
+      "facts": ["Key fact 1", "Key fact 2"]
     }`;
 
     const result = await model.generateContent([
-      prompt,
       {
         inlineData: {
           mimeType: "image/jpeg",
           data: base64Data
         }
-      }
+      },
+      prompt
     ]);
 
     if (!result || !result.response) {
