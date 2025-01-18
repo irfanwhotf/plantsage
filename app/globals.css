@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.animated-gradient {
+  background: linear-gradient(
+    -45deg,
+    rgba(16, 185, 129, 0.05),  /* emerald-500 with low opacity */
+    rgba(6, 95, 70, 0.1),      /* emerald-800 with low opacity */
+    rgba(209, 250, 229, 0.15), /* emerald-100 */
+    rgba(167, 243, 208, 0.1)   /* emerald-200 */
+  );
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 
+    transition-colors duration-200 font-semibold shadow-lg hover:shadow-xl;
+  }
+  
+  .card {
+    @apply bg-white rounded-2xl p-6 shadow-xl backdrop-blur-sm bg-opacity-90;
+  }
+}
