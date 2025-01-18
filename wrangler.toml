@@ -6,13 +6,13 @@ compatibility_flags = ["nodejs_compat"]
 command = "npm install && npm run build"
 
 [build.upload]
-format = "service-worker"
+format = "directory"
 
 [site]
-bucket = ".next/static"
+bucket = ".next"
 
 [env.production]
-pages_build_output_dir = ".next/standalone"
+pages_build_output_dir = ".next"
 
 [[routes]]
 pattern = "/api/.*"
