@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils';
 import { PlantInfo } from './utils/gemini';
 
 // API endpoint based on environment
-const API_ENDPOINT = '/api/identify';
+const API_ENDPOINT = typeof window !== 'undefined'
+  ? `${window.location.origin}/api/identify`
+  : '/api/identify';
 
 interface IdentifyResponse {
   result: PlantInfo;
@@ -64,7 +66,14 @@ export default function Home() {
         body: JSON.stringify({ image: base64 }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error('Error parsing response:', e);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
       console.log('API Response:', data);
 
       if (!response.ok) {

@@ -2,14 +2,18 @@ name = "plantsage"
 compatibility_date = "2024-01-18"
 compatibility_flags = ["nodejs_compat"]
 
-[site]
-bucket = "./.next/standalone"
-
 [build]
 command = "npm install && npm run build"
 
 [build.upload]
 format = "service-worker"
 
+[site]
+bucket = ".next/static"
+
 [env.production]
-pages_build_output_dir = ".next"
+pages_build_output_dir = ".next/standalone"
+
+[[routes]]
+pattern = "/api/.*"
+zone_name = "plantsage.pages.dev"
