@@ -104,7 +104,7 @@ export default function Home() {
       setResult(null);
 
       // Track error
-      trackEvent('identification_error', 'identification', 'error', err instanceof Error ? err.message : 'Unknown error');
+      trackEvent('identification_error', 'identification', 'error');
     } finally {
       setLoading(false);
     }
