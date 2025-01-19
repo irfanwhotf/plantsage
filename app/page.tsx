@@ -100,11 +100,12 @@ export default function Home() {
       trackEvent('plant_identified', 'identification', 'success', data.result.commonName);
     } catch (err) {
       console.error('Upload error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
       setResult(null);
 
       // Track error
-      trackEvent('identification_error', 'identification', 'error');
+      trackEvent('identification_error', 'identification', errorMessage);
     } finally {
       setLoading(false);
     }
