@@ -23,6 +23,10 @@ export interface PlantInfo {
     soil: string;
   };
   facts: string[];
+  plantCareTips: {
+    title: string;
+    description: string;
+  }[];
 }
 
 export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
@@ -61,7 +65,13 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
     "water": "Water needs",
     "soil": "Soil type"
   },
-  "facts": ["Fact 1", "Fact 2"]
+  "facts": ["Fact 1", "Fact 2"],
+  "plantCareTips": [
+    {
+      "title": "Care tip title",
+      "description": "Detailed care tip description"
+    }
+  ]
 }`;
 
     console.log('Sending request to Gemini API...');
@@ -104,7 +114,7 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
         throw new Error('Could not identify the plant in the image');
       }
 
-      // Ensure all required fields are present
+      // Validate and ensure all required fields are present
       const validatePlantInfo = (info: PlantInfo): boolean => {
         return !!(
           info.commonName &&
@@ -116,12 +126,19 @@ export async function identifyPlant(imageBase64: string): Promise<PlantInfo> {
           info.care?.light &&
           info.care?.water &&
           info.care?.soil &&
-          Array.isArray(info.facts)
+          Array.isArray(info.facts) &&
+          Array.isArray(info.plantCareTips)
         );
       };
 
       if (!validatePlantInfo(plantInfo)) {
-        throw new Error('Incomplete plant information received');
+        // Add default plant care tips if missing
+        if (!plantInfo.plantCareTips || !Array.isArray(plantInfo.plantCareTips)) {
+          plantInfo.plantCareTips = [{
+            title: "Basic Care",
+            description: "Keep soil moist but not waterlogged, provide appropriate lighting, and monitor for signs of stress."
+          }];
+        }
       }
 
       return plantInfo;
