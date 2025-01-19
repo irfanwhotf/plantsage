@@ -36,7 +36,7 @@ export default function FeedbackModal({ isOpen, closeModal, plantName }: Feedbac
       if (!response.ok) throw new Error('Failed to send feedback');
       
       setStatus('success');
-      trackEvent('feedback_submitted', 'feedback', 'success', plantName);
+      trackEvent('feedback_submitted', 'feedback', 'success');
 
       setTimeout(() => {
         closeModal();
